@@ -9,7 +9,7 @@ var fetchInterval = 15000;
 
 function getStock(socket, ticker){
 
-	axios.get('https://nasdaqrt.herokuapp.com/api/' + ticker)
+	axios.get('http://localhost:3000/api/' + ticker)
         .then(function(response) {
 
 	        	console.log('Another one');
