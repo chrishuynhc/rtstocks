@@ -5,9 +5,11 @@ var io = require('socket.io').listen(server);
 var axios = require('axios');
 
 var port = (process.env.PORT || 3000);
-var fetchInterval = 15000;
+var fetchInterval = 30000;
 
 function getStock(socket, ticker){
+
+	console.log('SERVER GET STOCK CALLED! TICKER: ' + ticker);
 
 	axios.get('http://localhost:8080/api/' + ticker)
         .then(function(response) {
@@ -27,7 +29,7 @@ function getStock(socket, ticker){
 	            	news: response.data.news	
 				}
 
-				socket.emit(ticker, data);
+				socket.emit(data.ticker, data);
 	});
 }
 
@@ -40,6 +42,7 @@ function update(socket, ticker){
     }, fetchInterval);
 
     socket.on('disconnect', function () {
+    	console.log('disconnected');
         clearInterval(timer);
     });
 }
@@ -56,6 +59,12 @@ io.on('connection', function(socket){
 	socket.on('ticker', function(ticker){
 		update(socket, ticker);
 	});
+	/*
+	socket.on('disconnect', function () {
+    	console.log('disconnected');
+        
+    });
+*/
 });
 
 server.listen(port, function(){

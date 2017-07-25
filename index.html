@@ -6,9 +6,10 @@
         <link rel="stylesheet" href="css/style.css"/>
         <link  rel="stylesheet" href="https://bootswatch.com/readable/bootstrap.min.css">
         <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+        <script src="https://unpkg.com/react@latest/dist/react.js"></script>
+        <script src="https://unpkg.com/react-dom@latest/dist/react-dom.js"></script>
+        <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.8/uuid.min.js"></script>
     </head>
 
     <body>
@@ -20,9 +21,10 @@
             var Stocks = React.createClass({
 
                 getInitialState: function(){
-                    return {
-                        tickers: [],
-                    }
+                   return {
+                        ticker: [],
+                        sockets: []
+                   }
                 },
 
                 componentDidMount: function(){
@@ -41,26 +43,36 @@
                     */
                 },
 
-                getTickers: function(itemData){
+                getTicker: function(itemData){
                     console.log('called');
-                    var tickers = this.state.tickers;
-                    tickers.push(itemData);
-                    this.setState({tickers: tickers});
+                    var ticker = this.state.ticker;
+                    ticker[0] = itemData;
+                    this.setState({ticker: ticker});
+                },
+
+                getSocket: function(socket){
+
+                    for (var i = 0; i < this.state.sockets.length; i++){
+                        this.state.sockets[i].disconnect();
+                    }
+                    var sockets = this.state.sockets;
+                    sockets.push(socket);
+                    this.state.sockets = sockets;
                 },
 
                 render: function(){
 
-                    var tickers = this.state.tickers;
-    
-                    var allItems = tickers.map(ticker => {
-                        return <Items ticker={ticker} />
+                    var randomId = uuid.v4();
+                    var ticker = this.state.ticker;
+                    var item = ticker.map(item => {
+                        return <Item key={randomId} ticker={item} randomId={randomId} getS={this.getSocket}/>
                     })
 
                     return (
                         <div>
-                            <Search getT={this.getTickers} />
+                            <Search getT={this.getTicker}/>
                             <div className="container"><h5>Updates every 15 seconds...</h5></div>
-                            {allItems}
+                            {item}
                         </div>
                     )
                 }
@@ -80,7 +92,6 @@
                             this.props.getT(this.state.searchValue);
                         });     
                     }
-
                     e.preventDefault();
                 },
 
@@ -90,7 +101,7 @@
                         <div className="container">
                             <div className="jumbotron">
                                 <h3 className="text-center">Search For Any Ticker</h3>
-                                <form ref="searchForm" onSubmit={this.searchTicker.bind(this)} >
+                                <form ref="searchForm" onSubmit={this.searchTicker} >
                                     <input type="text" className="form-control" ref="searchText" placeholder="Search Ticker" />
                                     <input type="submit" className="btn btn-primary" value="Submit" />
                                 </form>
@@ -101,7 +112,7 @@
                 }
             });
             
-            var Items = React.createClass({
+            var Item = React.createClass({
 
                 getInitialState: function(){
                     return {
@@ -110,10 +121,19 @@
                 },
 
                 componentDidMount: function(){
-
+                    var socket = this.state.socket;
+                    socket.emit('ticker', this.props.ticker);
                 },
 
                 render: function(){
+
+                    var self = this;
+                    var socket = this.state.socket;
+                    var ticker = this.props.ticker;
+                    socket.on(ticker, function(data){
+                        self.setState({volume: data.volume});
+                        console.log('set called');
+                    })
 
                     return (
                         <div>
@@ -121,6 +141,7 @@
                                 <div className="jumbotron">
                                     <h3>{this.props.ticker}</h3>
                                     <button type="button" className="btn btn-warning">Delete</button>
+                                    <h4>{this.state.volume}</h4>
                                 </div>
                             </div>
                         </div>
