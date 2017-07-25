@@ -29,22 +29,10 @@
 
                 componentDidMount: function(){
 
-                    /*
-                   //this.state.socket.emit('ticker', ticker);
-
-                        this.state.socket.on('AAPL', function(data) {
-                            
-                             var tickers = self.state.tickers;
-                             tickers.push(data.volume);
-                             self.setState({tickers: tickers});   
-                             
-                             console.log(data.volume);
-                        });
-                    */
                 },
 
                 getTicker: function(itemData){
-                    console.log('called');
+
                     var ticker = this.state.ticker;
                     ticker[0] = itemData;
                     this.setState({ticker: ticker});
@@ -121,7 +109,9 @@
                 },
 
                 componentDidMount: function(){
+
                     var socket = this.state.socket;
+                    this.props.getS(socket);
                     socket.emit('ticker', this.props.ticker);
                 },
 
@@ -132,7 +122,6 @@
                     var ticker = this.props.ticker;
                     socket.on(ticker, function(data){
                         self.setState({volume: data.volume});
-                        console.log('set called');
                     })
 
                     return (

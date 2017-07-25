@@ -9,7 +9,7 @@ var fetchInterval = 30000;
 
 function getStock(socket, ticker){
 
-	console.log('SERVER GET STOCK CALLED! TICKER: ' + ticker);
+	console.log('GETTING TICKER: ' + ticker);
 
 	axios.get('http://localhost:8080/api/' + ticker)
         .then(function(response) {
@@ -59,12 +59,6 @@ io.on('connection', function(socket){
 	socket.on('ticker', function(ticker){
 		update(socket, ticker);
 	});
-	/*
-	socket.on('disconnect', function () {
-    	console.log('disconnected');
-        
-    });
-*/
 });
 
 server.listen(port, function(){
