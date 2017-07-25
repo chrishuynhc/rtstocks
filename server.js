@@ -9,7 +9,7 @@ var fetchInterval = 15000;
 
 function getStock(socket, ticker){
 
-	axios.get('http://localhost:3000/api/' + ticker)
+	axios.get('http://localhost:8080/api/' + ticker)
         .then(function(response) {
 
 	        	console.log('Another one');

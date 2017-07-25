@@ -4,6 +4,7 @@
         <title>Stocks</title>
         <meta charset="UTF-8" />
         <link rel="stylesheet" href="css/style.css"/>
+        <link  rel="stylesheet" href="https://bootswatch.com/readable/bootstrap.min.css">
         <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.min.js"></script>
@@ -21,49 +22,112 @@
                 getInitialState: function(){
                     return {
                         tickers: [],
-                        socket: io('http://localhost:3000')
                     }
                 },
 
                 componentDidMount: function(){
 
-                   this.state.socket.emit('ticker', 'AAPL');
+                    /*
+                   //this.state.socket.emit('ticker', ticker);
 
                         this.state.socket.on('AAPL', function(data) {
-                            /*
+                            
                              var tickers = self.state.tickers;
                              tickers.push(data.volume);
                              self.setState({tickers: tickers});   
-                             */
+                             
                              console.log(data.volume);
                         });
+                    */
+                },
+
+                getTickers: function(itemData){
+                    console.log('called');
+                    var tickers = this.state.tickers;
+                    tickers.push(itemData);
+                    this.setState({tickers: tickers});
                 },
 
                 render: function(){
 
                     var tickers = this.state.tickers;
+    
+                    var allItems = tickers.map(ticker => {
+                        return <Items ticker={ticker} />
+                    })
 
                     return (
                         <div>
-                            {tickers}
+                            <Search getT={this.getTickers} />
+                            <div className="container"><h5>Updates every 15 seconds...</h5></div>
+                            {allItems}
                         </div>
                     )
                 }
             });
 
             var Search = React.createClass({
+
+
+                searchTicker: function(e){
+
+                    if(this.refs.searchText.value === ''){
+                        alert('Ticker is required');
+                    } else {
+
+                        this.setState({searchValue: this.refs.searchText.value}, function(){
+
+                            this.props.getT(this.state.searchValue);
+                        });     
+                    }
+
+                    e.preventDefault();
+                },
+
                 render: function(){
 
-                    
-
                     return (
-                        <div>
-                            Works
+                        <div className="container">
+                            <div className="jumbotron">
+                                <h3 className="text-center">Search For Any Ticker</h3>
+                                <form ref="searchForm" onSubmit={this.searchTicker.bind(this)} >
+                                    <input type="text" className="form-control" ref="searchText" placeholder="Search Ticker" />
+                                    <input type="submit" className="btn btn-primary" value="Submit" />
+                                </form>
+                                
+                            </div>
                         </div>
                     )
                 }
             });
+            
+            var Items = React.createClass({
 
+                getInitialState: function(){
+                    return {
+                        socket: io('http://localhost:3000')
+                    }
+                },
+
+                componentDidMount: function(){
+
+                },
+
+                render: function(){
+
+                    return (
+                        <div>
+                             <div className="container">
+                                <div className="jumbotron">
+                                    <h3>{this.props.ticker}</h3>
+                                    <button type="button" className="btn btn-warning">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+            });
+            
             ReactDOM.render(<Stocks />, document.getElementById('root'));
 
       </script>
