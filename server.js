@@ -5,7 +5,7 @@ var io = require('socket.io').listen(server);
 var axios = require('axios');
 
 var port = (process.env.PORT || 3000);
-var fetchInterval = 30000;
+var fetchInterval = 20000;
 
 function getStock(socket, ticker){
 
@@ -14,22 +14,24 @@ function getStock(socket, ticker){
 	axios.get('http://localhost:8080/api/' + ticker)
         .then(function(response) {
 
-	        	console.log('Another one');
+        		if (response.data.error == false){
+        			 var data = {
 
-	            var data = {
+		            	ticker: response.data.ticker,
+		            	price: response.data.price,
+		            	volume: response.data.volume,
+		            	sign: response.data.sign,
+		            	percentChange: response.data.percentChange,
+		            	timeLastSale: response.data.timeLastSale,
+		            	pLastSale: response.data.pLastSale,
+		            	volumeLastSale: response.data.volumeLastSale,
+		            	news: response.data.news	
+					}
 
-	            	ticker: response.data.ticker,
-	            	price: response.data.price,
-	            	volume: response.data.volume,
-	            	sign: response.data.sign,
-	            	percentChange: response.data.percentChange,
-	            	timeLastSale: response.data.timeLastSale,
-	            	pLastSale: response.data.pLastSale,
-	            	volumeLastSale: response.data.volumeLastSale,
-	            	news: response.data.news	
-				}
-
-				socket.emit(data.ticker, data);
+					socket.emit(data.ticker, data);
+        		} else {
+        			socket.emit('invalid');
+        		}           
 	});
 }
 
@@ -41,8 +43,13 @@ function update(socket, ticker){
         getStock(socket, ticker);
     }, fetchInterval);
 
-    socket.on('disconnect', function () {
+    socket.on('disconnect', function() {
     	console.log('disconnected');
+        clearInterval(timer);
+    });
+
+    socket.on('invalid', function () {
+    	console.log('Invalid ticker received from client. Ending updates...');
         clearInterval(timer);
     });
 }

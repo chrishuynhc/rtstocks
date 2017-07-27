@@ -3,7 +3,6 @@
     <head>
         <title>Stocks</title>
         <meta charset="UTF-8" />
-        <link rel="stylesheet" href="css/style.css"/>
         <link  rel="stylesheet" href="https://bootswatch.com/readable/bootstrap.min.css">
         <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
         <script src="https://unpkg.com/react@latest/dist/react.js"></script>
@@ -13,7 +12,14 @@
     </head>
 
     <body>
-        <h1>Hello</h1>
+        <h1 id="title">Hello</h1>
+        <style>
+            #title {
+                text-align: center;
+            }
+
+        </style>
+
         <div id="root"></div>
 
         <script type="text/babel">
@@ -59,7 +65,7 @@
                     return (
                         <div>
                             <Search getT={this.getTicker}/>
-                            <div className="container"><h5>Updates every 15 seconds...</h5></div>
+                            <div className="container"><h5>Updates every 20 seconds...</h5></div>
                             {item}
                         </div>
                     )
@@ -104,7 +110,8 @@
 
                 getInitialState: function(){
                     return {
-                        socket: io('http://localhost:3000')
+                        socket: io('http://localhost:3000'),
+                        ticker: this.props.ticker
                     }
                 },
 
@@ -113,24 +120,32 @@
                     var socket = this.state.socket;
                     this.props.getS(socket);
                     socket.emit('ticker', this.props.ticker);
+
                 },
 
                 render: function(){
 
                     var self = this;
                     var socket = this.state.socket;
-                    var ticker = this.props.ticker;
+                    var ticker = this.state.ticker;
+
                     socket.on(ticker, function(data){
                         self.setState({volume: data.volume});
+                    });
+
+                    socket.on('invalid', function(){
+                        socket.emit('invalid');
+                        self.setState({ticker: 'Invalid Ticker...'});
+                        alert('Invalid Ticker!');
                     })
 
                     return (
                         <div>
                              <div className="container">
                                 <div className="jumbotron">
-                                    <h3>{this.props.ticker}</h3>
-                                    <button type="button" className="btn btn-warning">Delete</button>
+                                    <h3>{this.state.ticker}</h3>
                                     <h4>{this.state.volume}</h4>
+                                    <button type="button" className="btn btn-default">News</button>
                                 </div>
                             </div>
                         </div>
