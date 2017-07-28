@@ -3,23 +3,20 @@
     <head>
         <title>Stocks</title>
         <meta charset="UTF-8" />
-        <link  rel="stylesheet" href="https://bootswatch.com/readable/bootstrap.min.css">
+        <link rel="stylesheet" href="https://bootswatch.com/readable/bootstrap.min.css">
         <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
         <script src="https://unpkg.com/react@latest/dist/react.js"></script>
         <script src="https://unpkg.com/react-dom@latest/dist/react-dom.js"></script>
         <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.8/uuid.min.js"></script>
+        
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script
+        
+        
     </head>
 
     <body>
-        <h1 id="title">Hello</h1>
-        <style>
-            #title {
-                text-align: center;
-            }
-
-        </style>
-
+        <h1 id="title">stoks.io</h1>
         <div id="root"></div>
 
         <script type="text/babel">
@@ -62,10 +59,15 @@
                         return <Item key={randomId} ticker={item} randomId={randomId} getS={this.getSocket}/>
                     })
 
+                    
+
                     return (
                         <div>
                             <Search getT={this.getTicker}/>
-                            <div className="container"><h5>Updates every 20 seconds...</h5></div>
+                            <div className="container">
+                                <h4>Updates every 20 seconds... <div className="loader"></div></h4>
+                                
+                            </div>
                             {item}
                         </div>
                     )
@@ -99,7 +101,6 @@
                                     <input type="text" className="form-control" ref="searchText" placeholder="Search Ticker" />
                                     <input type="submit" className="btn btn-primary" value="Submit" />
                                 </form>
-                                
                             </div>
                         </div>
                     )
@@ -130,7 +131,16 @@
                     var ticker = this.state.ticker;
 
                     socket.on(ticker, function(data){
-                        self.setState({volume: data.volume});
+                        self.setState({
+                            price: data.price,
+                            volume: data.volume,
+                            sign: data.sign,
+                            percentChange: data.percentChange,
+                            timeLastSale: data.timeLastSale,
+                            pLastSale: data.pLastSale,
+                            volumeLastSale: data.volumeLastSale,
+                            news: data.news
+                        });
                     });
 
                     socket.on('invalid', function(){
@@ -139,12 +149,32 @@
                         alert('Invalid Ticker!');
                     })
 
+
                     return (
                         <div>
                              <div className="container">
                                 <div className="jumbotron">
-                                    <h3>{this.state.ticker}</h3>
-                                    <h4>{this.state.volume}</h4>
+
+                                    <h3>{this.state.ticker} {this.state.price}</h3>
+                                    <h5>{this.state.sign} {this.state.percentChange} Current volume: {this.state.volume}</h5>
+                                    
+                                    <table className="table">
+                                      <thead className="thead-inverse">
+                                        <tr>
+                                          <th>Time Last Sale</th>
+                                          <th>Price Last Sale</th>
+                                          <th>Volume Last Sale</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        <tr>                                
+                                          <td>{this.state.timeLastSale}</td>
+                                          <td>{this.state.pLastSale}</td>
+                                          <td>{this.state.volumeLastSale}</td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                    
                                     <button type="button" className="btn btn-default">News</button>
                                 </div>
                             </div>
@@ -156,5 +186,36 @@
             ReactDOM.render(<Stocks />, document.getElementById('root'));
 
       </script>
+
+      <style>
+        #title {
+            text-align: center;
+            padding-bottom: 10px;
+        }
+
+        .loader {
+            border: 4px solid #F7F7F7; /* Light grey */
+            border-top: 4px solid #4582EC; /* Blue */
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            top: -10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        th, td {
+            padding-left: 0 !important;
+        }
+
+        body {
+            font-family: 'Raleway' !important;
+        }
+      </style>
     </body>
 </html>
