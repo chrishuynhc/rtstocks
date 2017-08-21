@@ -15,6 +15,7 @@ function getStock(socket, ticker){
         .then(function(response) {
 
         		if (response.data.error == false){
+        			
         			 var data = {
 
 		            	ticker: response.data.ticker,
@@ -25,7 +26,10 @@ function getStock(socket, ticker){
 		            	timeLastSale: response.data.timeLastSale,
 		            	pLastSale: response.data.pLastSale,
 		            	volumeLastSale: response.data.volumeLastSale,
-		            	news: response.data.news	
+		            	news: response.data.news,
+		            	link: response.data.newsLink,
+		            	prices: response.data.prices,
+		            	dates: response.data.dates	
 					}
 
 					socket.emit(data.ticker, data);

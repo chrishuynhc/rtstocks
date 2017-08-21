@@ -3,21 +3,37 @@
     <head>
         <title>Stocks</title>
         <meta charset="UTF-8" />
-        <link rel="stylesheet" href="https://bootswatch.com/readable/bootstrap.min.css">
+        
         <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
         <script src="https://unpkg.com/react@latest/dist/react.js"></script>
         <script src="https://unpkg.com/react-dom@latest/dist/react-dom.js"></script>
         <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.8/uuid.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.min.js"></script>
         
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script
-        
-        
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<link href="https://fonts.googleapis.com/css?family=Merriweather" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700,900" rel="stylesheet">
+
+
+
+              
     </head>
 
-    <body>
-        <h1 id="title">stoks.io</h1>
+   
+
+    <body id="page-top">
+
+        
+        <h1 id="title"><a href="http://stockrocket.io">STOCKROCKET.IO</a></h1>
+        <h5 id="title">Real-time Data</h5>
+        
+        
         <div id="root"></div>
+
+
 
         <script type="text/babel">
 
@@ -58,8 +74,7 @@
                     var item = ticker.map(item => {
                         return <Item key={randomId} ticker={item} randomId={randomId} getS={this.getSocket}/>
                     })
-
-                    
+                
 
                     return (
                         <div>
@@ -98,8 +113,8 @@
                             <div className="jumbotron">
                                 <h3 className="text-center">Search For Any Ticker</h3>
                                 <form ref="searchForm" onSubmit={this.searchTicker} >
-                                    <input type="text" className="form-control" ref="searchText" placeholder="Search Ticker" />
-                                    <input type="submit" className="btn btn-primary" value="Submit" />
+                                    <input type="text" className="form-control" ref="searchText" placeholder="Enter Ticker (ex. AAPL)" />
+                                    <input id="sub" type="submit" className="btn btn-primary" value="Search" />
                                 </form>
                             </div>
                         </div>
@@ -121,6 +136,33 @@
                     var socket = this.state.socket;
                     this.props.getS(socket);
                     socket.emit('ticker', this.props.ticker);
+                    var sample = this.state.prices;
+                    var lables = this.state.dates;
+                    console.log(sample);
+
+                    var ctx = document.getElementById("myChart").getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: lables,
+                            datasets: [{
+                                label: 'Price',
+                                data: sample,
+                                fill: false,
+                                borderColor: 'rgba(82, 115, 223, .5)',
+                                borderWidth: 3
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero:true
+                                    }
+                                }]
+                            }
+                        }
+                    });
 
                 },
 
@@ -129,6 +171,7 @@
                     var self = this;
                     var socket = this.state.socket;
                     var ticker = this.state.ticker;
+                    var color = 'green';
 
                     socket.on(ticker, function(data){
                         self.setState({
@@ -139,8 +182,32 @@
                             timeLastSale: data.timeLastSale,
                             pLastSale: data.pLastSale,
                             volumeLastSale: data.volumeLastSale,
-                            news: data.news
+                            news: data.news,
+                            link: data.link,
+                            prices: data.prices,
+                            dates: data.dates
                         });
+                        console.log(data.dates);
+                        console.log(this.state.dates);
+
+                        if (data.sign == 'arrow-red'){
+                            color = 'red';
+                            var newPercentChange = '-' + data.percentChange;
+                            self.setState({
+                                percentChange: newPercentChange,
+                                color: color
+                            });
+                        } 
+
+                        if (data.sign == 'arrow-green'){
+                            color = 'green';
+
+                            var newPercentChange = '+' + data.percentChange;
+                            self.setState({
+                                percentChange: newPercentChange,
+                                color: color
+                            });
+                        } 
                     });
 
                     socket.on('invalid', function(){
@@ -150,14 +217,17 @@
                     })
 
 
+
+
+
                     return (
                         <div>
                              <div className="container">
                                 <div className="jumbotron">
+                                    <canvas id="myChart" width="400" height="200"></canvas>
+                                    <h2>{this.state.ticker} {this.state.price} <span className={this.state.color}>{this.state.percentChange} </span></h2>
+                                    <h5>Current volume: {this.state.volume}</h5>
 
-                                    <h3>{this.state.ticker} {this.state.price}</h3>
-                                    <h5>{this.state.sign} {this.state.percentChange} Current volume: {this.state.volume}</h5>
-                                    
                                     <table className="table">
                                       <thead className="thead-inverse">
                                         <tr>
@@ -174,8 +244,11 @@
                                         </tr>
                                       </tbody>
                                     </table>
+
+                                    <h3>News</h3>
+                                    <h5><a href={this.state.link}>{this.state.news}</a></h5>
                                     
-                                    <button type="button" className="btn btn-default">News</button>
+                                    
                                 </div>
                             </div>
                         </div>
@@ -184,38 +257,56 @@
             });
             
             ReactDOM.render(<Stocks />, document.getElementById('root'));
-
       </script>
 
       <style>
-        #title {
-            text-align: center;
-            padding-bottom: 10px;
-        }
 
-        .loader {
-            border: 4px solid #F7F7F7; /* Light grey */
-            border-top: 4px solid #4582EC; /* Blue */
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            top: -10px;
-        }
+            
+            #title {
+                text-align: center;
+                padding-bottom: 10px;
+                font-family: 'Open Sans', sans-serif !important;
+                font-weight: 900 !important;
+            }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+            .loader {
+                border: 4px solid #F7F7F7; /* Light grey */
+                border-top: 4px solid #4582EC; /* Blue */
+                border-radius: 50%;
+                width: 22px;
+                height: 22px;
+                animation: spin 1s linear infinite;
+                display: inline-block;
+                top: -10px;
+            }
 
-        th, td {
-            padding-left: 0 !important;
-        }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
 
-        body {
-            font-family: 'Raleway' !important;
-        }
+            th, td {
+                padding-left: 0 !important;
+            }
+
+            html {
+                font-family: 'Merriweather' !important;
+                
+            }
+
+            #sub {
+                margin-top: 20px;
+            }
+
+            .red {
+                color: red;
+            }
+
+            .green {
+                color: green;
+            }
+
+            
       </style>
     </body>
 </html>
