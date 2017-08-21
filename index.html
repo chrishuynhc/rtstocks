@@ -136,9 +136,6 @@
                     var socket = this.state.socket;
                     this.props.getS(socket);
                     socket.emit('ticker', this.props.ticker);
-                    var sample = this.state.prices;
-                    var lables = this.state.dates;
-                    console.log(sample);
 
                     var ctx = document.getElementById("myChart").getContext('2d');
                     var myChart = new Chart(ctx, {
@@ -187,8 +184,6 @@
                             prices: data.prices,
                             dates: data.dates
                         });
-                        console.log(data.dates);
-                        console.log(this.state.dates);
 
                         if (data.sign == 'arrow-red'){
                             color = 'red';
